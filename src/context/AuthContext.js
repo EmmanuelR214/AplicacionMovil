@@ -30,7 +30,7 @@ export const AuthProvider = ({children, natigation}) => {
       console.log('error ',error.response.data)
     }
   }
-  
+  //correcion de inicio de sesion via google, optimizar useEffect para uso de la clientId (token)
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: '942890329531-o6v7creo5pg7im3q10ur5gpk4m5hcuht.apps.googleusercontent.com',
   })
@@ -38,6 +38,7 @@ export const AuthProvider = ({children, natigation}) => {
   useEffect(()=>{
     if(response?.type === 'success'){
       const {id_token} = response.params
+      //Perdida de token (undefine)
       const credential = GoogleAuthProvider.credential(id_token)
       signInWithCredential(auth, credential)
         .then((userCrential) => {
