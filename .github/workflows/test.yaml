@@ -1,0 +1,11 @@
+name: Hola mundo
+
+on: [push]
+
+jobs: 
+  uno:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mensaje
+        run: echo "Hola mundo"
