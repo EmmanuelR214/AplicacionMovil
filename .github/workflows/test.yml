@@ -53,21 +53,18 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    if: failure() || success()
+
     steps:
-      - name: Notify on failure
+      - name: Notificación de fallo a Slack
         if: failure()
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"🚨 Build failed in branch: ${{ github.ref_name }}"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Error en el CI/CD en la rama ${{ github.ref }}. Revisa los detalles: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Notify on success
+      - name: Notificación de éxito a Slack
         if: success()
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"✅ Build succeeded in branch: ${{ github.ref_name }}"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD completado con éxito en la rama ${{ github.ref }}. Revisa los detalles: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
   notify_pr_comment:
     runs-on: ubuntu-latest
