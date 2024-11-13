@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollView } from "react-native-gesture-handler";
 import { CategoryButton } from "./Buttons";
 import { CarouselItem } from "./Carousel";
 import tw from 'tailwind-react-native-classnames';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { apiStore, apiUser } from "@/utils/api/axios";
 
 // Importa tus iconos
 const categories = [
@@ -13,9 +14,34 @@ const categories = [
   // Agrega más categorías según sea necesario
 ];
 
-export const CategorySelector = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Dinner');
+interface CategoryButtonProps {
+  id_categoria: string;
+  descripcionCategoria: string;
+  nombreCategoria: string;
+}
 
+interface CategorySelectorProps {
+  setCategori: React.Dispatch<React.SetStateAction<number>>;
+}
+
+export const CategorySelector: React.FC<CategorySelectorProps> = ({setCategori}) => {
+  const [selectedCategory, setSelectedCategory] = useState('Dinner');
+  const [categories, setCategories] = useState<CategoryButtonProps[]>([]);
+  
+  useEffect(() => {
+    async function fetch() {
+      const result = await apiStore.get('/categorias')
+      setCategories(result.data)
+    }
+    fetch()
+  }, []);
+  
+  const handleCategoryPress = (categoryId: string) => () =>{
+    setSelectedCategory(categoryId);
+    const idCategoria = parseInt(categoryId);
+    setCategori(idCategoria)
+  };
+  
   return (
     <GestureHandlerRootView>
       <ScrollView
@@ -25,30 +51,32 @@ export const CategorySelector = () => {
       >
         {categories.map((category) => (
           <CategoryButton
-            key={category.title}
-            title={category.title}
-            icon={category.icon}
-            selected={selectedCategory === category.title}
-            onPress={() => setSelectedCategory(category.title)}
+            key={category.id_categoria}
+            title={category.nombreCategoria}
+            selected={selectedCategory === category.id_categoria}
+            onPress={handleCategoryPress(category.id_categoria)}
           />
         ))}
       </ScrollView>
     </GestureHandlerRootView>
   );
-};
+};  
 
-const carouselData = [
-  {
-    id: 1,
-    image: require('../assets/images/react-logo.png'),
-    title: 'Chicken Baked',
-    time: '30 min',
-    difficulty: 'Easy lvl',
-  },
-  // Agrega más elementos según sea necesario
-];
+interface CarouselItemProps {
+  id: string;
+  imagen: string;
+  posicion: string;
+}
 
 export const FoodCarousel = () => {
+  const [carouselData, setCarouselData] = useState<CarouselItemProps[]>([]);
+  useEffect(() => {
+    async function fetch() {
+      const res = await apiUser.get('/publicidad')
+      setCarouselData(res.data)
+    }
+    fetch()
+  }, [])
   return (
     <GestureHandlerRootView>
       <ScrollView
@@ -59,10 +87,8 @@ export const FoodCarousel = () => {
         {carouselData.map((item) => (
           <CarouselItem
             key={item.id}
-            image={item.image}
-            title={item.title}
-            time={item.time}
-            difficulty={item.difficulty}
+            image={item.imagen}
+            title={item.posicion}
           />
         ))}
       </ScrollView>

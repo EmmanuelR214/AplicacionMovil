@@ -7,12 +7,11 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 
 interface CategoryButtonProps {
   title: string;
-  icon: any; // Ruta de la imagen o icono
   selected: boolean;
   onPress: () => void;
 }
 
-export const CategoryButton: React.FC<CategoryButtonProps> = ({ title, icon, selected, onPress }) => {
+export const CategoryButton: React.FC<CategoryButtonProps> = ({ title, selected, onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -22,7 +21,6 @@ export const CategoryButton: React.FC<CategoryButtonProps> = ({ title, icon, sel
         { marginRight: 8 }, // Espacio entre botones
       ]}
     >
-      <Image source={icon} style={tw`w-4 h-4 mr-2`} />
       <Text style={selected ? tw`text-black text-sm` : tw`text-gray-400 text-sm`}>
         {title}
       </Text>

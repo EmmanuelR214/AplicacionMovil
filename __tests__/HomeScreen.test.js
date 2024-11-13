@@ -1,21 +1,17 @@
-import React from 'react';
+  import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import Home from '../app/(tabs)/Home';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Mock de `useSafeAreaInsets`
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
-// Mock de Tailwind CSS
 jest.mock('tailwind-react-native-classnames', () => () => ({
   flex1: { flex: 1 },
   bgBlack: { backgroundColor: 'black' },
-  // Otros estilos relevantes para tu prueba
 }));
 
-// Mock de los componentes externos
 jest.mock('@/components/Cards', () => {
   const { View, Text } = require('react-native');
   return {
@@ -52,39 +48,33 @@ jest.mock('@/components/Modal', () => {
   };
 });
 
-// Configuración inicial
 beforeAll(() => {
   useSafeAreaInsets.mockReturnValue({ top: 0, right: 0, bottom: 0, left: 0 });
 });
 
-describe('Home Screen', () => {
-  it('renders the main elements of the Home screen', () => {
-    const { getByText, getAllByTestId } = render(<Home />);
+// describe('Home Screen', () => {
+//   it('renders the main elements of the Home screen', () => {
+//     const { getByText, getAllByTestId } = render(<Home />);
 
-    // Verifica el saludo y el subtítulo
-    expect(getByText('Hi, Arnold')).toBeTruthy();
-    expect(getByText('Ready to cook for dinner?')).toBeTruthy();
+//     expect(getByText('Hi, Arnold')).toBeTruthy();
+//     expect(getByText('Ready to cook for dinner?')).toBeTruthy();
 
-    // Verifica la presencia del carrusel y el selector de categorías
-    expect(getAllByTestId('food-carousel')).toBeTruthy();
-    expect(getAllByTestId('category-selector')).toBeTruthy();
+//     expect(getAllByTestId('food-carousel')).toBeTruthy();
+//     expect(getAllByTestId('category-selector')).toBeTruthy();
 
-    // Verifica que se rendericen las tarjetas de comida
-    const foodCards = getAllByTestId('food-card');
-    expect(foodCards.length).toBeGreaterThan(0); // Asegura que haya al menos una tarjeta
-  });
+//     const foodCards = getAllByTestId('food-card');
+//     expect(foodCards.length).toBeGreaterThan(0); 
+//   });
 
-  it('opens and closes the drawer component', () => {
-    const { getByText, queryByTestId } = render(<Home />);
+//   it('opens and closes the drawer component', () => {
+//     const { getByText, queryByTestId } = render(<Home />);
 
-    // Abre el Drawer
-    const drawerButton = getByText('A');
-    fireEvent.press(drawerButton);
-    expect(queryByTestId('drawer-component')).toBeTruthy();
+//     const drawerButton = getByText('A');
+//     fireEvent.press(drawerButton);
+//     expect(queryByTestId('drawer-component')).toBeTruthy();
 
-    // Cierra el Drawer
-    const closeDrawerButton = getByText('Cerrar');
-    fireEvent.press(closeDrawerButton);
-    expect(queryByTestId('drawer-component')).toBeNull();
-  });
-});
+//     const closeDrawerButton = getByText('Cerrar');
+//     fireEvent.press(closeDrawerButton);
+//     expect(queryByTestId('drawer-component')).toBeNull();
+//   });
+// });

@@ -10,14 +10,11 @@ describe('SignInButtonn Component', () => {
       <SignInButtonn title="Iniciar Sesión" onPress={mockOnPress} testID="signin-button" />
     );
 
-    // Verifica que el título del botón se renderice
     expect(getByText('Iniciar Sesión')).toBeTruthy();
 
-    // Verifica que el botón se renderice con el testID correcto
     const button = getByTestId('signin-button');
     expect(button).toBeTruthy();
 
-    // Simula el evento onPress
     fireEvent.press(button);
     expect(mockOnPress).toHaveBeenCalled();
   });

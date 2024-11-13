@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TextInputProps, TouchableOpacity, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TextInputProps, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, FlatList, Keyboard  } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Animated, { FadeIn, useAnimatedStyle, withTiming  } from 'react-native-reanimated';
@@ -563,6 +563,168 @@ export const InputSearch: React.FC<InputSearchProps> = ({ change, ...textInputPr
     </View>
   );
 };
+
+interface MoneyInputProps {
+  value: number;
+  onChange: (value: number) => void;
+}
+
+export const MoneyInput: React.FC<MoneyInputProps> = ({ value, onChange }) => {
+  // Formato de la cantidad de dinero
+  const formatCurrency = (value: string) => {
+    return Number(value).toLocaleString('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+    }).replace('$', '');
+  };
+
+  const [inputValue, setInputValue] = useState<string>(formatCurrency(value.toString()));
+
+  // Manejador de cambio de valor
+  const handleChange = (text: string) => {
+    const rawValue = text.replace(/,/g, '');
+    if (!isNaN(Number(rawValue))) {
+      const formattedValue = formatCurrency(rawValue);
+      setInputValue(formattedValue);
+      onChange && onChange(Number(rawValue));
+    }
+  };
+
+  return (
+    <View style={tw`relative`}>
+      {/* Icono de dólar */}
+      <View style={tw`absolute inset-y-0 left-0 flex items-center justify-center pl-2 `}>
+        <FontAwesome name="dollar" size={20} color="green" />
+      </View>
+      {/* Input de texto para el valor */}
+      <Animated.View entering={FadeIn}>
+        <TextInput
+          style={tw`text-white bg-transparent p-2 border border-gray-300 shadow-sm pl-8 pr-2 py-2 rounded-md`}
+          value={inputValue}
+          onChangeText={handleChange}
+          keyboardType="numeric"
+          placeholder="0"
+          placeholderTextColor="white"
+          returnKeyType="done"
+          onSubmitEditing={() => Keyboard.dismiss()}
+        />
+      </Animated.View>
+    </View>
+  );
+};
+
+
+interface Option {
+  value: string;
+  label: string;
+  icono?: string;
+  cantidad?: string;
+}
+
+interface CustomSelect2Props {
+  options: Option[];
+  placeholder: string;
+  onChange: (option: Option) => void;
+  value: Option | null;
+  w?: string;
+  opt?: boolean;
+  text?: string;
+  click?: () => void;
+  icon?: boolean;
+  desc?: boolean;
+}
+
+const mapIconName = (iconName: string) => {
+  switch (iconName) {
+    case 'ic:outline-home':
+      return 'home';
+    case 'icomoon-free:office':
+      return 'building-o';
+    case 'mdi:heart':
+      return 'heart';
+    default:
+      return null;
+  }
+};
+
+export const CustomSelect2: React.FC<CustomSelect2Props> = ({
+  options,
+  placeholder,
+  onChange,
+  value,
+  opt = false,
+  text,
+  click,
+  icon = false,
+  desc = false,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <View style={tw`relative w-full z-10`}>
+      <TouchableOpacity
+        style={[tw`flex-row justify-between items-center px-3 py-4 rounded bg-gray-800`, { width: '100%' }]}
+        onPress={toggleDropdown}
+      >
+        <Text style={tw`text-white`}>{value ? value.label : placeholder}</Text>
+        <AntDesign
+          name="down"
+          size={20}
+          color="white"
+          style={isOpen ? { transform: [{ rotate: '180deg' }] } : {}}
+        />
+      </TouchableOpacity>
+
+      {isOpen && (
+        <Animated.View
+          entering={FadeIn}
+          style={[tw`absolute w-full bg-gray-800 shadow-md mt-1 rounded z-10`, { maxHeight: 200 }]}
+        >
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => {
+              const mappedIconName = mapIconName(item.icono || '');
+              return (
+                <TouchableOpacity
+                  style={tw`px-3 py-2 rounded flex-row items-center`}
+                  onPress={() => {
+                    onChange(item);
+                    toggleDropdown();
+                  }}
+                >
+                  <Text style={tw`text-white flex-1`}>{item.label}</Text>
+                  {icon && mappedIconName && (
+                    <FontAwesome name={mappedIconName} size={16} color="white" style={tw`ml-2`} />
+                  )}
+                  {desc && item.cantidad && <Text style={tw`text-gray-400 ml-2`}>{item.cantidad}</Text>}
+                </TouchableOpacity>
+              );
+            }}
+          />
+
+          {opt && (
+            <TouchableOpacity
+              style={tw`flex items-center justify-between p-3 bg-gray-700`}
+              onPress={click}
+            >
+              <Text style={tw`text-white`}>{text}</Text>
+              <AntDesign name="plus" size={20} color="white" />
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+      )}
+    </View>
+  );
+};
+
+
+//----------------------------------------------------------------
 
 interface InputDesignnProps extends TextInputProps {
   title: string;

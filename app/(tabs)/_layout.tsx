@@ -4,12 +4,15 @@ import { FontAwesome } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import tw from 'tailwind-react-native-classnames';
 import { BlurView } from 'expo-blur';
+import { useAuth } from '@/context/AuthContext';
 
 
 export default function TabsLayout() {
+  const { countCar } = useAuth();
+  console.log(countCar)
   return (
     <Tabs screenOptions={{
       headerShown: false,
@@ -50,16 +53,21 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen 
-        name="Carrito" 
-        options={{
-          tabBarIcon: ({ color, size, focused }) => (
-            <Animated.View entering={FadeIn} style={[tw`justify-center items-center`, focused && { transform: [{ scale: 1.2 }] }]}>
-              <Feather name="shopping-cart" size={focused ? 20 : size} color={color} />
-            </Animated.View>
-          ),
-        }}
-      />
+  <Tabs.Screen
+    name="Carrito"
+    options={{
+      tabBarIcon: ({ color, size, focused }) => (
+        <Animated.View entering={FadeIn} style={[tw`justify-center items-center`, focused && { transform: [{ scale: 1.2 }] }]}>
+          <Feather name="shopping-cart" size={focused ? 20 : size} color={color} />
+          {countCar > 0 && (
+            <View style={[tw`absolute rounded-full bg-red-500 h-4 w-4 justify-center items-center`, { top: -5, right: -10 }]}>
+              <Text style={tw`text-white text-xs font-bold`}>{countCar}</Text>
+            </View>
+          )}
+        </Animated.View>
+      ),
+    }}
+  />
     </Tabs>
   );
 }

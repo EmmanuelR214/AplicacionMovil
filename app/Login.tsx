@@ -6,35 +6,36 @@ import { InputDesign, InputPassword } from '@/components/Inputs';
 import { SignInButton } from '@/components/Buttons';
 import tw from 'tailwind-react-native-classnames';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 
-export const Login = () => {
+
+const Login = () => {
+  const {signin} = useAuth();
   const { control, handleSubmit, formState: { errors } } = useForm();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const onSubmit = async (data: any) => {
     try {
-      console.log(data);
-      router.push('/Home')
+      const respuesta = await signin(data);
+      if (respuesta) {
+        router.push('/Home')
+      }
     } catch (error) {
       console.error(error);
     }
   };
-
   return (
     <View style={[tw`flex-1 bg-black`, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      {/* Imagen de fondo en la parte superior */}
       <Image
         source={require('../assets/images/login.jpg')} // Reemplaza con la ruta de tu imagen
         style={styles.headerImage}
         resizeMode="cover"
       />
 
-      {/* Contenedor de contenido de inicio de sesión */}
       <View style={tw`px-6 mt-4`}>
         <Text style={tw`text-white text-3xl font-bold mb-2 text-center`}>Inicio de sesión</Text>
         <Text style={[styles.subtitle, tw`text-center mb-6`]}>Bienvenido a <Text style={styles.highlight}>Barbada Order</Text></Text>
 
-        {/* Campo de correo o teléfono */}
         <InputDesign
           title="Nombre de usuario"
           name="username"
@@ -44,7 +45,6 @@ export const Login = () => {
           testID="username-input"
         />
 
-        {/* Campo de contraseña */}
         <InputPassword
           title="Contraseña"
           name="password"
@@ -54,7 +54,6 @@ export const Login = () => {
           testID="password-input"
         />
 
-        {/* Botón de inicio de sesión */}
         <View style={tw`mt-4`}>
           <SignInButton
             text="INICIAR SESION"
@@ -65,7 +64,6 @@ export const Login = () => {
           />
         </View>
 
-        {/* Enlaces de "Olvidaste tu contraseña?" y "Registrate" */}
         <View style={tw`mt-4`}>
           <TouchableOpacity style={tw`mb-2`} onPress={() => alert('JAJJAJA por burro')}>
             <Text style={styles.linkText}>Olvidaste tu contraseña?</Text>
@@ -78,9 +76,10 @@ export const Login = () => {
         </View>
       </View>
     </View>
-  );
-};
+  )
+}
 
+export default Login
 
 const styles = StyleSheet.create({
   headerImage: {
@@ -101,3 +100,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+/*
+
+export const Login = () => {
+
+
+  return (
+
+  );
+};
+
+*/
