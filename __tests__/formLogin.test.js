@@ -1,12 +1,4 @@
-// Mock para FormData
-global.FormData = class FormData {
-  constructor() {
-    this.data = {};
-  }
-  append(key, value) {
-    this.data[key] = value;
-  }
-};
+global.FormData = require('form-data');
 
 import React from 'react';
 import { render } from '@testing-library/react-native';
