@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import tw from 'tailwind-react-native-classnames';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStripe } from '@stripe/stripe-react-native';
 
 import { CustomSelect2, MoneyInput} from '@/components/Inputs';
 import { CheckoutButton } from '@/components/Buttons';
@@ -56,7 +57,7 @@ const Payment: React.FC = () => {
   const [pago, setPago] = useState(0);
   const [total, setTotal] = useState(0);
   const [carrito, setCarrito] = useState([]);
-  const [metodoPago, setMetodoPago] = useState<string>('tarjeta');
+  const [metodoPago, setMetodoPago] = useState<string>('');
   const router = useRouter();
   
   useEffect(()=>{
@@ -87,14 +88,89 @@ const Payment: React.FC = () => {
   
   const handleOpcionSeleccionada = (value: Option) => setSelectedOptionDireccion(value);
   const handlePagoChange = (value: number) => setPago(value);
-  const handleMetodoPagoChange = (metodo: string) => setMetodoPago(metodo);
+  const handleMetodoPagoChange = async (metodo: string) => {
+    setMetodoPago(metodo);
+    if (metodo === 'tarjeta') {
+      await initializePaymentSheet();
+    }
+  };
+    
   
-  const handleCheckout = async() => {
+  //? Stripe
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [isPaymentSheetReady, setIsPaymentSheetReady] = useState(false);
+  
+  const fetchPaymentSheetParams = async () => {
     try {
-      if (metodoPago === 'efectivo') {
-        if(!selectedOptionDireccion) return setErrorAuth(['No has seleccionado una dirección'])
-        if(pago === 0) return setErrorAuth(['No has ingresado un monto pago'])
-        if(pago < total) return setErrorAuth(['El pago es menor al total'])
+      const response = await apiStore.post('/create-payment-stripe', {
+        amount: total * 100,
+      });
+  
+      const { paymentIntent, ephemeralKey, customer } = response.data;
+  
+      if (!paymentIntent || !ephemeralKey || !customer) {
+        throw new Error("Faltan parámetros necesarios para la Payment Sheet.");
+      }
+  
+      return { paymentIntent, ephemeralKey, customer };
+    } catch (error) {
+      console.error("Error obteniendo parámetros para la Payment Sheet:", error);
+    }
+  };
+  
+  const initializePaymentSheet = async () => {
+    const paymentParams = await fetchPaymentSheetParams();
+  
+    if (!paymentParams) return;
+  
+    const { paymentIntent, ephemeralKey, customer } = paymentParams;
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: "LaBarabda",
+      customerId: customer,
+      customerEphemeralKeySecret: ephemeralKey,
+      paymentIntentClientSecret: paymentIntent,
+      allowsDelayedPaymentMethods: true,
+      defaultBillingDetails: { name: 'Irving Hernandez' },
+      returnURL: "LaBarbada://Payment-return"
+    });
+    
+    if (!error) {
+      setIsPaymentSheetReady(true);
+    }
+  };
+  
+  const openPaymentSheet = async () => {
+    const { error } = await presentPaymentSheet();
+  
+    if (error) {
+      console.error('Error presenting payment sheet:', error);
+    } else {
+      console.log('Payment confirmed');
+      const data = {
+        id_usuario: user!.id, 
+        sumaSubtotales: total, 
+        id_direccion: selectedOptionDireccion?.value, 
+        metodoPago: 2, 
+        precio: total, 
+        cambio: 0, 
+        carrito: carrito,
+        email: user!.email,
+        telefono: user!.telefono
+      };
+      const result = await apiStore.post('/venta', data);
+      if (result.data) router.push('/PaymentSucces');
+    }
+  };
+  
+  const handleCheckout = async () => {
+    console.log('Se ejecuto el checkout');
+    try {
+      if (!selectedOptionDireccion) return setErrorAuth(['No has seleccionado una dirección']);
+      if(!metodoPago) return setErrorAuth(['No has seleccionado un metodo de pago'])
+        if (metodoPago === 'efectivo') {
+        if (pago === 0) return setErrorAuth(['No has ingresado un monto pago']);
+        if (pago < total) return setErrorAuth(['El pago es menor al total']);
+        
         const cambio = pago - total;
         const data = {
           id_usuario: user!.id, 
@@ -106,29 +182,28 @@ const Payment: React.FC = () => {
           carrito: carrito,
           email: user!.email,
           telefono: user!.telefono
-        }
-        const result = await apiStore.post('/venta', data)
-        if(result.data) return router.push('/PaymentSucces')
+        };
+        const result = await apiStore.post('/venta', data);
+        if (result.data) router.push('/PaymentSucces');
       } else {
-        if(!selectedOptionDireccion) return setErrorAuth(['No has seleccionado una dirección'])
-        const data = {
-          id_usuario: user!.id, 
-          sumaSubtotales: total, 
-          id_direccion: selectedOptionDireccion?.value, 
-          metodoPago: 2, 
-          precio: total, 
-          cambio: 0, 
-          carrito: carrito,
-          email: user!.email,
-          telefono: user!.telefono
+        // Llama a initializePaymentSheet solo cuando el usuario está listo para proceder al pago
+        await initializePaymentSheet();
+        
+        if (isPaymentSheetReady) {
+          await openPaymentSheet();
+        }else{
+          setErrorAuth(['Error al preparar la hoja de pago. Intente nuevamente.']);
         }
-        saveDataToStorage(data);
-        router.push('/PayTarjet')
       }
     } catch (error) {
-      
+      console.error(error);
     }
   };
+  
+  useEffect(() => {
+    console.log("isPaymentSheetReady:", isPaymentSheetReady);
+  }, [isPaymentSheetReady]);
+  
   
   return (
     <ScrollView style={[tw`flex-1 bg-black px-4`, { paddingBottom: insets.bottom }]}>
@@ -188,7 +263,8 @@ const Payment: React.FC = () => {
       <CheckoutButton
         title={metodoPago === 'efectivo' ? 'Confirmar Pedido en Efectivo' : 'Confirmar Pago'}
         onPress={handleCheckout}
-      />
+        disabled={!isPaymentSheetReady && metodoPago === 'tarjeta'}
+        />
     </ScrollView>
   );
 };
@@ -196,3 +272,105 @@ const Payment: React.FC = () => {
 export default Payment
 
 const styles = StyleSheet.create({})
+
+/*
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [isPaymentSheetReady, setIsPaymentSheetReady] = useState(false);
+  
+  const fetchPaymentSheetParams = async () => {
+    try {
+      // Enviar el total multiplicado por 100 para obtener el valor en centavos
+      const response = await apiStore.post('/create-payment-stripe', {
+        amount: total * 100, // Asegúrate de que total esté definido y contenga el monto correcto
+      });
+  
+      const { paymentIntent, ephemeralKey, customer } = response.data;
+  
+      if (!paymentIntent || !ephemeralKey || !customer) {
+        throw new Error("Faltan parámetros necesarios para la Payment Sheet.");
+      }
+  
+      return { paymentIntent, ephemeralKey, customer };
+    } catch (error) {
+      console.error("Error obteniendo parámetros para la Payment Sheet:", error);
+    }
+  };
+  
+  const initializePaymentSheet = async () => {
+    const paymentParams = await fetchPaymentSheetParams();
+  
+    if (!paymentParams) return;
+  
+    const { paymentIntent, ephemeralKey, customer } = paymentParams;
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: "LaBarabda",
+      customerId: customer,
+      customerEphemeralKeySecret: ephemeralKey,
+      paymentIntentClientSecret: paymentIntent,
+      allowsDelayedPaymentMethods: true,
+      defaultBillingDetails: { name: 'Irving Hernandez' },
+      returnURL: "LaBarbada://Payment-return"
+    });
+  
+    if (!error) {
+      setIsPaymentSheetReady(true);
+    }
+  };
+  
+  const openPaymentSheet = async () => {
+  const { error } = await presentPaymentSheet();
+
+  if (error) {
+    console.error('Error presenting payment sheet:', error);
+  } else {
+    console.log('Payment confirmed');
+    const data = {
+      id_usuario: user!.id, 
+      sumaSubtotales: total, 
+      id_direccion: selectedOptionDireccion?.value, 
+      metodoPago: 2, 
+      precio: total, 
+      cambio: 0, 
+      carrito: carrito,
+      email: user!.email,
+      telefono: user!.telefono
+    }
+    const result = await apiStore.post('/venta', data)
+    if(result.data) return router.push('/PaymentSucces')
+  }
+};
+
+useEffect(() => {
+  if (total > 0) initializePaymentSheet(); // inicializa la Payment Sheet solo si el total es mayor a 0
+}, [total]);
+  
+  const handleCheckout = async() => {
+    try {
+      if (metodoPago === 'efectivo') {
+        if(!selectedOptionDireccion) return setErrorAuth(['No has seleccionado una dirección'])
+        if(pago === 0) return setErrorAuth(['No has ingresado un monto pago'])
+        if(pago < total) return setErrorAuth(['El pago es menor al total'])
+        const cambio = pago - total;
+        const data = {
+          id_usuario: user!.id, 
+          sumaSubtotales: total, 
+          id_direccion: selectedOptionDireccion.value, 
+          metodoPago: 1, 
+          precio: pago, 
+          cambio: cambio, 
+          carrito: carrito,
+          email: user!.email,
+          telefono: user!.telefono
+        }
+        const result = await apiStore.post('/venta', data)
+        if(result.data) return router.push('/PaymentSucces')
+      } else {
+        if(!selectedOptionDireccion) return setErrorAuth(['No has seleccionado una dirección'])
+        openPaymentSheet();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+*/

@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import tw from 'tailwind-react-native-classnames';
+import { useAuth } from '@/context/AuthContext';
 
 interface DrawerComponentProps {
   visible: boolean;
@@ -9,6 +10,7 @@ interface DrawerComponentProps {
 }
 
 export const DrawerComponent: React.FC<DrawerComponentProps> = ({ visible, onClose }) => {
+  const {logout} = useAuth()
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={stylesDrawer.overlay}>
@@ -18,10 +20,7 @@ export const DrawerComponent: React.FC<DrawerComponentProps> = ({ visible, onClo
           </TouchableOpacity>
           {/* Opciones del Drawer */}
           <Text style={tw`text-white font-bold text-2xl mb-4`}>Opciones</Text>
-          <TouchableOpacity style={tw`mb-4`}>
-            <Text style={tw`text-white text-lg`}>Configuración</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={tw`mb-4`}>
+          <TouchableOpacity style={tw`mb-4`} onPress={()=>{logout(), onClose()}} >
             <Text style={tw`text-white text-lg`}>Salir</Text>
           </TouchableOpacity>
           {/* Agrega más opciones según sea necesario */}

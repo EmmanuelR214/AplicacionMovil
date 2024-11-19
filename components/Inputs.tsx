@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TextInputProps, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, FlatList, Keyboard  } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import Animated, { FadeIn, useAnimatedStyle, withTiming  } from 'react-native-reanimated';
+import Animated, { FadeIn, useAnimatedStyle, withTiming, FadeOut  } from 'react-native-reanimated';
 import { useController, UseControllerProps } from 'react-hook-form';
 import tw from 'tailwind-react-native-classnames';
 
@@ -614,7 +614,6 @@ export const MoneyInput: React.FC<MoneyInputProps> = ({ value, onChange }) => {
   );
 };
 
-
 interface Option {
   value: string;
   label: string;
@@ -707,7 +706,15 @@ export const CustomSelect2: React.FC<CustomSelect2Props> = ({
               );
             }}
           />
+        </Animated.View>
+      )}
+      
+      {/* Aqui va lo que quite */}	
+    </View>
+  );
+};
 
+/*
           {opt && (
             <TouchableOpacity
               style={tw`flex items-center justify-between p-3 bg-gray-700`}
@@ -717,12 +724,100 @@ export const CustomSelect2: React.FC<CustomSelect2Props> = ({
               <AntDesign name="plus" size={20} color="white" />
             </TouchableOpacity>
           )}
+*/
+
+
+interface Option2 {
+  value: string;
+  label: string;
+  extraText: string;
+  precio: number;
+}
+
+interface CustomSelectPlusProps {
+  options: Option2[];
+  placeholder: string;
+  onChange: (selectedOptions: Option2[]) => void;
+  value: Option2[];
+}
+
+export const CustomSelectPlus: React.FC<CustomSelectPlusProps> = ({ options, placeholder, onChange, value }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<Option2[]>(value);
+
+  useEffect(() => {
+    onChange(selectedOptions);
+  }, [selectedOptions, onChange]);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleOptionClick = (option: Option2) => {
+    const selectedIndex = selectedOptions.findIndex((opt) => opt.value === option.value);
+    if (selectedIndex > -1) {
+      const newSelectedOptions = [...selectedOptions];
+      newSelectedOptions.splice(selectedIndex, 1);
+      setSelectedOptions(newSelectedOptions);
+    } else {
+      setSelectedOptions([...selectedOptions, option]);
+    }
+  };
+
+  const isSelected = (option: Option2) => {
+    return selectedOptions.some((opt) => opt.value === option.value);
+  };
+
+  return (
+    <View style={tw`relative w-full`}>
+      <TouchableOpacity
+        style={tw`px-3 py-2 border-b-2 border-gray-500`}
+        onPress={toggleDropdown}
+      >
+        <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-white`}>
+            {selectedOptions.length > 0 ? selectedOptions.map((opt) => opt.label).join(', ') : placeholder}
+          </Text>
+          <AntDesign
+            name={isOpen ? 'up' : 'down'}
+            size={24}
+            color="white"
+            style={tw`ml-2`}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {isOpen && (
+        <Animated.View
+          entering={FadeIn}
+          exiting={FadeOut}
+          style={tw`absolute top-12 w-full bg-black border-t border-gray-600 z-10 max-h-40`}
+        >
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={tw`flex-row items-center px-3 py-2 border-b border-gray-700`}
+                onPress={() => handleOptionClick(item)}
+              >
+                <View style={tw`flex-1`}>
+                  <Text style={tw`text-white`}>{item.label}</Text>
+                  <Text style={tw`text-red-600 text-xs`}>{item.extraText}</Text>
+                </View>
+                <FontAwesome
+                  name={isSelected(item) ? 'check-square' : 'square-o'}
+                  size={20}
+                  color="white"
+                />
+              </TouchableOpacity>
+            )}
+          />
         </Animated.View>
       )}
     </View>
   );
 };
-
 
 //----------------------------------------------------------------
 

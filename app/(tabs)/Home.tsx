@@ -49,7 +49,6 @@ const Home = () => {
     console.log(selected)
     async function featch() {
       const result = await apiStore.get(`/menu-categoria/${selected}`)
-      console.log(result.data)
       setPlatillos(result.data[0])
     }
     featch()

@@ -8,12 +8,12 @@ import tw from 'tailwind-react-native-classnames';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
-
 const Login = () => {
   const {signin} = useAuth();
   const { control, handleSubmit, formState: { errors } } = useForm();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  
   const onSubmit = async (data: any) => {
     try {
       const respuesta = await signin(data);
@@ -65,9 +65,6 @@ const Login = () => {
         </View>
 
         <View style={tw`mt-4`}>
-          <TouchableOpacity style={tw`mb-2`} onPress={() => alert('JAJJAJA por burro')}>
-            <Text style={styles.linkText}>Olvidaste tu contraseña?</Text>
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/Register')} style={tw`mb-2`}>
             <Text style={[styles.linkText, tw`text-center`]}>
               No tienes cuenta? <Text style={styles.highlight}>Registrate</Text>
@@ -104,7 +101,9 @@ const styles = StyleSheet.create({
 
 export const Login = () => {
 
-
+          <TouchableOpacity style={tw`mb-2`} onPress={() => alert('JAJJAJA por burro')}>
+            <Text style={styles.linkText}>Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
   return (
 
   );

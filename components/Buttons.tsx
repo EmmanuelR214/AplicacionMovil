@@ -105,7 +105,7 @@ export const ButtonGoToCart: React.FC<GoToCartButtonProps> = ({ onPress }) => {
     <Animated.View entering={FadeIn.duration(500)} style={styles.buttonContainer}>
       <TouchableOpacity onPress={onPress} style={styles.button}>
         <FontAwesome name="shopping-cart" size={18} color="white" style={tw`mr-2`} />
-        <Text style={styles.buttonText}>Go To Cart</Text>
+        <Text style={styles.buttonText}>Agregar al carrito</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: '#202020',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderTopLeftRadius: 30,
@@ -133,6 +133,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+interface ButtonDetalleProps {
+  text: string;
+  onPress: () => void;
+  isSelected: boolean;
+}
+
+export const ButtonDetalle: React.FC<ButtonDetalleProps> = ({ text, onPress, isSelected }) => {
+  return (
+    <TouchableOpacity
+      style={[
+        tw`py-2 px-4 rounded mb-2`, 
+        isSelected ? tw`bg-red-600` : tw`bg-gray-800`, 
+      ]}
+      onPress={onPress}
+    >
+      <Text style={tw`${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
+        {text}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+
+
+//--------
 
 interface SignInButtonnProps {
   title: string;

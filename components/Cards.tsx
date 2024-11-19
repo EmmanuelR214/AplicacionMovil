@@ -3,6 +3,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter} from 'expo-router';
 import tw from 'tailwind-react-native-classnames';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface FoodCardProps {
   image: any; 
@@ -20,6 +21,14 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   estado,
 }) => {
   const router = useRouter();
+  const redirectToDescription = async() => {
+    try {
+      await AsyncStorage.setItem('platillo', title)
+      router.push('/DescripcionPlatillo')
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return (
     <View style={tw`bg-gray-900 p-4 rounded-2xl w-40 h-60 shadow-lg`}>
       {(estado === 'oferta' || estado === 'nuevo') && (
@@ -33,7 +42,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         </View>
       )}
       {/* Imagen del platillo */}
-      <TouchableOpacity onPress={() => router.push('/DescripcionPlatillo')} >
+      <TouchableOpacity onPress={redirectToDescription} >
         <Image source={{uri:`https://labarbada.store/img/${image}`}} style={tw`w-full h-24 rounded-lg`} resizeMode="cover" />
       </TouchableOpacity>
       

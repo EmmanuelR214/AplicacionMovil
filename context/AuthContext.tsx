@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginRoute } from '@/utils/api/apiUser';
 import { apiStore } from '@/utils/api/axios';
+import { router } from 'expo-router';
 
 interface User {
   id: string;
@@ -17,10 +18,12 @@ interface AuthContextType {
   errorAuth: string[];
   successAuth: string[];
   countCar: number
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setErrorAuth: React.Dispatch<React.SetStateAction<string[]>>
   setCountCar: React.Dispatch<React.SetStateAction<number>>
   handleAddCarrito: (id: number, precio: number) => Promise<void>;
   signin: (val: { username: string; password: string }) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,6 +86,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
   
+  const logout = async() =>{
+    try {
+      await AsyncStorage.removeItem('token')
+      setUser(null)
+      setIsAuthenticated(false)
+      router.push('/HomeScreen')
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  
   useEffect(()=>{
     if(errorAuth.length > 0 || successAuth.length > 0){
       const timer = setTimeout(()=>{
@@ -94,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   },[errorAuth, successAuth])
   
   return(
-    <AuthContext.Provider value={{ user, setErrorAuth, isAuthenticated, signin, errorAuth, successAuth, handleAddCarrito, setCountCar, countCar }}>
+    <AuthContext.Provider value={{ user, setErrorAuth, isAuthenticated, signin, errorAuth, successAuth, handleAddCarrito, setCountCar, countCar, logout, setUser}}>
       {children}
     </AuthContext.Provider>
   )
