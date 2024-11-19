@@ -1,3 +1,12 @@
+global.FormData = class FormData {
+  constructor() {
+    this.data = {};
+  }
+  append(key, value) {
+    this.data[key] = value;
+  }
+};
+
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { InputDesignn, InputPassworrd } from '../components/Inputs';
