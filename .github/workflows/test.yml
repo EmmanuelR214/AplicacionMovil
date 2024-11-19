@@ -47,14 +47,14 @@ jobs:
       # 5. Instalación de dependencias
       - name: Install dependencies
         run: npm install
-
-      # 6. Linter del código
-      - name: Lint code with Expo
-        run: expo lint --max-warnings=0
-
-      # 7. Pruebas unitarias
+      
+        # 7. Pruebas unitarias
       - name: Run tests
         run: npm test
+      
+        # 6. Linter del código
+      - name: Lint code with Expo
+        run: expo lint --max-warnings=0
 
   build:
     runs-on: ubuntu-latest
