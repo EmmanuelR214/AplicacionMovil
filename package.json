@@ -12,6 +12,7 @@
     "lint": "expo lint"
   },
   "jest": {
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
     "preset": "jest-expo"
   },
   "dependencies": {

@@ -54,7 +54,12 @@ jobs:
 
       # 7. Pruebas unitarias
       - name: Run tests
-        run: npm test
+        run: |
+          echo "global.FormData = class FormData {
+            constructor() { this.data = {}; }
+            append(key, value) { this.data[key] = value; }
+          };" >> jest.setup.js
+          npm test
 
   build:
     runs-on: ubuntu-latest
