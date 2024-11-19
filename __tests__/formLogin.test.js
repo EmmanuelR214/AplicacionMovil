@@ -1,3 +1,4 @@
+// Mock para FormData
 global.FormData = class FormData {
   constructor() {
     this.data = {};
