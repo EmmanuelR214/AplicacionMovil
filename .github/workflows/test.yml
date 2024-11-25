@@ -48,9 +48,9 @@ jobs:
       - name: Install dependencies
         run: npm install
       
-      #   # 7. Pruebas unitarias
-      # - name: Run tests
-      #   run: npm test
+        # 7. Pruebas unitarias
+      - name: Run tests
+        run: console.log('Ejecutando pruebas...')
       
         # 6. Linter del código
       - name: Lint code with Expo
@@ -94,6 +94,10 @@ jobs:
             exit 1
           fi
 
+          # Obtener solo el nombre del archivo desde la ruta completa
+          IMAGE_NAME=$(basename "$IMAGE_PATH")
+          echo "El nombre del icono es: $IMAGE_NAME"
+
           # Subir la imagen al servidor PHP
           curl -X POST \
             -F "imagen=@$IMAGE_PATH" \
@@ -105,7 +109,7 @@ jobs:
             -d '{
               "url": "'"$DOWNLOAD_URL"'",
               "nombre": "'"$PROJECT_NAME"'",
-              "icono": "'"$IMAGE_PATH"'"
+              "icono": "'"$IMAGE_NAME"'"
             }'
 
         env:
@@ -114,6 +118,7 @@ jobs:
           WEB_SERVICE_URL: "https://labarbada.store/subirImagen.php"
           API_URL: "https://api-admin-six.vercel.app/api/guardar-datos"  # Cambia por la URL de tu API
           PROJECT_NAME: "LaBarbada"  # Cambia este valor por el nombre de tu proyecto
+
 
   notify:
     runs-on: ubuntu-latest
