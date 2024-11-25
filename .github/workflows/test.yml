@@ -79,12 +79,41 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}  # Asegúrate de configurar EXPO_TOKEN en GitHub Secrets.
 
-      # 5. Construcción para iOS (opcional, si es necesario)
-      - name: Build for iOS
-        if: github.event_name == 'workflow_dispatch'  # Solo ejecuta esto manualmente
-        run: npx eas-cli build --platform ios --profile preview
+      # 5. Obtener URL del artefacto y subir imagen
+      - name: Upload image and send data to API
+        run: |
+          # Obtener URL del artefacto
+          RESPONSE=$(eas build:list --limit=1 --status=finished --json --non-interactive)
+          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.[0].artifacts.buildUrl')
+
+          echo "La URL del artefacto obtenida es: $DOWNLOAD_URL"
+
+          # Verificar si la imagen existe
+          if [ ! -f "$IMAGE_PATH" ]; then
+            echo "La imagen no existe en la ruta especificada: $IMAGE_PATH"
+            exit 1
+          fi
+
+          # Subir la imagen al servidor PHP
+          curl -X POST \
+            -F "imagen=@$IMAGE_PATH" \
+            "$WEB_SERVICE_URL"
+
+          # Enviar datos a la API de Express
+          curl -X POST "$API_URL" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "url": "'"$DOWNLOAD_URL"'",
+              "nombre": "'"$PROJECT_NAME"'",
+              "icono": "'"$IMAGE_PATH"'"
+            }'
+
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          IMAGE_PATH: ".github/workflows/icono.png"  # Cambia esto a la ruta de tu icono
+          WEB_SERVICE_URL: "https://labarbada.store/subirImagen.php"
+          API_URL: "https://api-admin-six.vercel.app/api/guardar-datos"  # Cambia por la URL de tu API
+          PROJECT_NAME: "LaBarbada"  # Cambia este valor por el nombre de tu proyecto
 
   notify:
     runs-on: ubuntu-latest
