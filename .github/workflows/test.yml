@@ -50,7 +50,7 @@ jobs:
       
         # 7. Pruebas unitarias
       - name: Run tests
-        run: console.log('Ejecutando pruebas...')
+        run: echo "Ejecutando pruebas..."
       
         # 6. Linter del código
       - name: Lint code with Expo
